@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <pthread.h>
 #include "Mapa.h"
 
 Mapa* criaMapa(int numLinhas, int numColunas) {
@@ -56,12 +57,60 @@ int melhorSomaLinha(int* linha, int tamanho) {
     return a;
 }
 
-int melhorSomaTotal(Mapa* mapa) {
-    int* melhoresSomas = malloc(sizeof(int) * mapa->numLinhas);
-    for (int i = 0; i < mapa->numLinhas; i++) {
-        melhoresSomas[i] = melhorSomaLinha(mapa->posicao[i], mapa->numColunas);
+typedef struct {
+    Mapa* mapa;
+    int* melhoresSomas;
+    int limiteInferior;
+    int limiteSuperior;
+} Parametros;
+
+void* paralelizacaoMelhorSoma(void* parametrosAux) {
+    Parametros* parametros = (Parametros*) parametrosAux;
+    for (int i = parametros->limiteInferior; i <= parametros->limiteSuperior; i++) {
+        parametros->melhoresSomas[i] = melhorSomaLinha(parametros->mapa->posicao[i], parametros->mapa->numColunas);
     }
+    pthread_exit(NULL);
+}
+
+int melhorSomaTotal(Mapa* mapa, int numCores) {
+    int i;
+
+    pthread_t thread[numCores];
+    int* melhoresSomas = malloc(sizeof(int) * mapa->numLinhas);
+    Parametros* parametros = malloc(sizeof(Parametros) * numCores);
+
+    if (numCores >= mapa->numLinhas) {
+        for (i = 0; i < mapa->numLinhas; i++) {
+            parametros[i].mapa = mapa;
+            parametros[i].melhoresSomas = melhoresSomas;
+            parametros[i].limiteInferior = i;
+            parametros[i].limiteSuperior = i;
+            pthread_create(&thread[i], NULL, paralelizacaoMelhorSoma, &parametros[i]);
+        }
+        for (i = 0; i < mapa->numLinhas; i++) {
+            pthread_join(thread[i], NULL);
+        }
+    } else if (numCores < mapa->numLinhas) {
+        int slice = mapa->numLinhas / numCores;
+        for (i = 0; i < numCores - 1; i++) {
+            parametros[i].mapa = mapa;
+            parametros[i].melhoresSomas = melhoresSomas;
+            parametros[i].limiteInferior = i * slice;
+            parametros[i].limiteSuperior = (i + 1) * slice;
+            pthread_create(&thread[i], NULL, paralelizacaoMelhorSoma, &parametros[i]);
+        }
+        parametros[i].mapa = mapa;
+        parametros[i].melhoresSomas = melhoresSomas;
+        parametros[i].limiteInferior = i * slice;
+        parametros[i].limiteSuperior = mapa->numLinhas - 1;
+        pthread_create(&thread[i], NULL, paralelizacaoMelhorSoma, &parametros[i]);
+        for (i = 0; i < numCores; i++) {
+            pthread_join(thread[i], NULL);
+        }
+    }
+
     int somaTotal = melhorSomaLinha(melhoresSomas, mapa->numLinhas);
     free(melhoresSomas);
     return somaTotal;
+    return 1;
 }

@@ -11,14 +11,6 @@ Mapa* criaMapa(int numLinhas, int numColunas);
 
 void liberaMapa(Mapa* mapa);
 
-int* getEnderecoPosicao(Mapa* mapa, int linha, int coluna);
-
-int getValorPosicao(Mapa* mapa, int linha, int coluna);
-
-void imprimeMapa(Mapa* mapa);
-
-int melhorSomaLinha(int* linha, int tamanho);
-
-int melhorSomaTotal(Mapa* mapa);
+int melhorSomaTotal(Mapa* mapa, int numCores);
 
 #endif // MAPA_H_INCLUDED
