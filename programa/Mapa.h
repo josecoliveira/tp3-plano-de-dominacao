@@ -9,6 +9,8 @@ typedef struct {
 
 Mapa* criaMapa(int numLinhas, int numColunas);
 
+int* getEnderecoPosicao(Mapa* mapa, int linha, int coluna);
+
 void liberaMapa(Mapa* mapa);
 
 int melhorSomaTotal(Mapa* mapa, int numCores);

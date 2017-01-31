@@ -7,25 +7,22 @@ int main(int argc, char const *argv[]) {
     ///Entrada
     int numLinhas, numColunas;
     int valid = 0;
-    while (!valid) {
-        valid = scanf("%d", &numLinhas);
-    }
-    valid = 0;
-    while (!valid) {
-        valid = scanf("%d", &numColunas);
-    }
-    valid = 0;
+    scanf("%d", &numLinhas);
+    scanf("%d", &numColunas);
 
     Mapa* mapa = criaMapa(numLinhas, numColunas);
+    printf("Criou mapa\n");
+    int i, j;
+    for (i = 0; i < numLinhas; i++) {
+        for (j = 0; j < numColunas; j++) {
+            scanf("%d", getEnderecoPosicao(mapa, i, j));
+        }
+    }
 
     int melhorSoma;
     int numCores = atoi(argv[1]);
 
-    if (argc == 1) {
-        melhorSoma = melhorSomaTotal(mapa, 1);
-    } else if (argc == 2) {
-        melhorSoma = melhorSomaTotal(mapa, numCores);
-    }
+    melhorSoma = melhorSomaTotal(mapa, numCores);
 
     printf("%d\n", melhorSoma);
 
