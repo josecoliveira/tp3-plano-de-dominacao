@@ -5,7 +5,7 @@ typedef struct {
     int numLinhas;
     int numColunas;
     int **posicao;
-    int threadAtual;
+    int linhaAtual;
 } Mapa;
 
 Mapa* criaMapa(int numLinhas, int numColunas);
