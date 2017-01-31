@@ -6,30 +6,23 @@
 int main(int argc, char const *argv[]) {
     ///Entrada
     int numLinhas, numColunas;
-    int valid = 0;
-    while (!valid) {
-        valid = scanf("%d", &numLinhas);
-    }
-    valid = 0;
-    while (!valid) {
-        valid = scanf("%d", &numColunas);
-    }
-    valid = 0;
+    int validScan = scanf("%d%d", &numLinhas, &numColunas);
+    if (validScan == 2){
+		Mapa* mapa = criaMapa(numLinhas, numColunas);
 
-    Mapa* mapa = criaMapa(numLinhas, numColunas);
+		int melhorSoma;
+		int numCores = atoi(argv[1]);
 
-    int melhorSoma;
-    int numCores = atoi(argv[1]);
+		if (argc == 1) {
+		    melhorSoma = melhorSomaTotal(mapa, 1);
+		} else if (argc == 2) {
+		    melhorSoma = melhorSomaTotal(mapa, numCores);
+		}
 
-    if (argc == 1) {
-        melhorSoma = melhorSomaTotal(mapa, 1);
-    } else if (argc == 2) {
-        melhorSoma = melhorSomaTotal(mapa, numCores);
-    }
+		printf("%d\n", melhorSoma);
 
-    printf("%d\n", melhorSoma);
-
-    ///Liberação de memória
-    liberaMapa(mapa);
+		///Liberação de memória
+		liberaMapa(mapa);
+	}
     return 0;
 }
