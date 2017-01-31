@@ -10,9 +10,9 @@ int main(int argc, char const *argv[]) {
 		(argc == 2) &&
 		(sscanf(argv[1], "%d", &numCores) == 1)
 	);	
-	int numLinhas, numColunas;	
+	int numLinhas, numColunas;
     ///Entrada padrão
-    int validScan = scanf("%d%d", &numLinhas, &numColunas);
+    int validScan = (scanf("%d%d", &numLinhas, &numColunas) == 2);
 	if (validArgument && validScan){
 		Mapa* mapa = criaMapa(numLinhas, numColunas);
 		for (int i = 0; i < numLinhas; i++) {
