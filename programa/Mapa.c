@@ -8,6 +8,7 @@ Mapa* criaMapa(int numLinhas, int numColunas) {
     mapa->numLinhas = numLinhas;
     mapa->numColunas = numColunas;
     mapa->posicao = malloc(sizeof(int*) * numLinhas);
+    mapa->threadAtual = 0;
     for (int i = 0; i < numLinhas; i++) {
         mapa->posicao[i] = malloc(sizeof(int *) * numColunas);
     }
@@ -60,57 +61,32 @@ int melhorSomaLinha(int* linha, int tamanho) {
 typedef struct {
     Mapa* mapa;
     int* melhoresSomas;
-    int limiteInferior;
-    int limiteSuperior;
 } Parametros;
 
 void* paralelizacaoMelhorSoma(void* parametrosAux) {
-    Parametros* parametros = (Parametros*) parametrosAux;
-    for (int i = parametros->limiteInferior; i <= parametros->limiteSuperior; i++) {
-        parametros->melhoresSomas[i] = melhorSomaLinha(parametros->mapa->posicao[i], parametros->mapa->numColunas);
+    Parametros* parametro = (Parametros*) parametrosAux;
+    Mapa* mapa = parametro->mapa;
+    int *melhoresSomas = parametro->melhoresSomas;
+    int linha;
+    while ((linha = mapa->threadAtual++) < mapa->numLinhas){
+    	melhoresSomas[linha] = melhorSomaLinha(mapa->posicao[linha], mapa->numColunas);
     }
     pthread_exit(NULL);
 }
 
 int melhorSomaTotal(Mapa* mapa, int numCores) {
-    int i;
 
-    pthread_t thread[numCores];
+    pthread_t* thread = malloc(sizeof(pthread_t) * numCores);
     int* melhoresSomas = malloc(sizeof(int) * mapa->numLinhas);
-    Parametros* parametros = malloc(sizeof(Parametros) * numCores);
-
-    if (numCores >= mapa->numLinhas) {
-        for (i = 0; i < mapa->numLinhas; i++) {
-            parametros[i].mapa = mapa;
-            parametros[i].melhoresSomas = melhoresSomas;
-            parametros[i].limiteInferior = i;
-            parametros[i].limiteSuperior = i;
-            pthread_create(&thread[i], NULL, paralelizacaoMelhorSoma, &parametros[i]);
-        }
-        for (i = 0; i < mapa->numLinhas; i++) {
-            pthread_join(thread[i], NULL);
-        }
-    } else if (numCores < mapa->numLinhas) {
-        int slice = mapa->numLinhas / numCores;
-        for (i = 0; i < numCores - 1; i++) {
-            parametros[i].mapa = mapa;
-            parametros[i].melhoresSomas = melhoresSomas;
-            parametros[i].limiteInferior = i * slice;
-            parametros[i].limiteSuperior = (i + 1) * slice;
-            pthread_create(&thread[i], NULL, paralelizacaoMelhorSoma, &parametros[i]);
-        }
-        parametros[i].mapa = mapa;
-        parametros[i].melhoresSomas = melhoresSomas;
-        parametros[i].limiteInferior = i * slice;
-        parametros[i].limiteSuperior = mapa->numLinhas - 1;
-        pthread_create(&thread[i], NULL, paralelizacaoMelhorSoma, &parametros[i]);
-        for (i = 0; i < numCores; i++) {
-            pthread_join(thread[i], NULL);
-        }
+    Parametros parametro = {mapa, melhoresSomas};
+    for (int i = 0; i < numCores; i++) {
+        pthread_create(&thread[i], NULL, paralelizacaoMelhorSoma, &parametro);
     }
-
+    for (int i = 0; i < numCores; i++) {
+        pthread_join(thread[i], NULL);
+    }
     int somaTotal = melhorSomaLinha(melhoresSomas, mapa->numLinhas);
     free(melhoresSomas);
+    free(thread);
     return somaTotal;
-    return 1;
 }
